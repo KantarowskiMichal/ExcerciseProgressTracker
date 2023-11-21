@@ -19,27 +19,37 @@ def get_int_from_user() -> int:
     return int(num_input)
 
 
+def get_name_from_user() -> str:
+    while True:
+        name_input = input()
+        confirmation = input("ary you sure? if yes type in y")
+        if confirmation == "y":
+            return name_input
+
+
 date_now = dt.date.today()
 with open("progress_file.txt", "r") as fp:
     progress_dict = json.load(fp)
 
 while True:
-    print("plot\npu\nsq\ncr")
+    print("plot\nadd\nlist")
     user_input = input()
 
     day_difference = num_of_days(datetime.strptime(progress_dict["start_date"], "%Y-%m-%d").date(), dt.date.today())
-    while len(progress_dict["push_ups"]) < day_difference + 1:
-        progress_dict["push_ups"].append(0)
-        progress_dict["squats"].append(0)
-        progress_dict["crunches"].append(0)
+    days_since_update = (day_difference - len(progress_dict["push_ups"])) + 1
+    for key in progress_dict:
+        if key == "start_date":
+            continue
+        progress_dict[key] = progress_dict[key] + [0 for _ in range(1, days_since_update)]
 
     if user_input == "plot":
 
-        x_axis = [i for i in range(1, day_difference+2)]
+        x_axis = [i for i in range(1, day_difference+1)]
 
-        plt.plot(x_axis, progress_dict["push_ups"], label="push ups")
-        plt.plot(x_axis, progress_dict["squats"], label="squats")
-        plt.plot(x_axis, progress_dict["crunches"], label="crunches")
+        for key in progress_dict:
+            if key == "start_date":
+                continue
+            plt.plot(x_axis, progress_dict[key], label=key)
 
         xint = range(min(x_axis), math.ceil(max(x_axis)) + 1)
         matplotlib.pyplot.xticks(xint)
@@ -48,19 +58,19 @@ while True:
         plt.legend()
 
         plt.show()
-    if user_input == "pu":
-        num_in = get_int_from_user()
-        progress_dict["push_ups"][day_difference] += num_in
+    elif user_input == "add":
+        name_in = get_name_from_user()
+        progress_dict[name_in] = [0 for _ in range(0, len(progress_dict["push_ups"]) + 1)]
         with open("progress_file.txt", "w") as fp:
             json.dump(progress_dict, fp)
-    if user_input == "sq":
+    elif user_input == "list":
+        for key in progress_dict:
+            if key == "start_date":
+                continue
+            print(key)
+        print("------------------------")
+    elif user_input != "start_date" and user_input in progress_dict:
         num_in = get_int_from_user()
-        progress_dict["squats"][day_difference] += num_in
+        progress_dict[user_input][day_difference] += num_in
         with open("progress_file.txt", "w") as fp:
             json.dump(progress_dict, fp)
-    if user_input == "cr":
-        num_in = get_int_from_user()
-        progress_dict["crunches"][day_difference] += num_in
-        with open("progress_file.txt", "w") as fp:
-            json.dump(progress_dict, fp)
-
